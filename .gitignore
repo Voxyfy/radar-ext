@@ -1,2 +1,4 @@
 .DS_Store
 *.zip
+store/*.zip
+store/shot-raw*
