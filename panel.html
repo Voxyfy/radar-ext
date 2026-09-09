@@ -51,6 +51,8 @@
   .pager button:disabled { opacity: .4; cursor: default; }
   details summary { cursor: pointer; color: var(--muted); }
   #restoreFile { display: none; }
+  .warn { color: var(--amber); }
+  .warnbox { background: rgba(255, 181, 71, .12); color: var(--amber); border: 1px solid rgba(255, 181, 71, .45); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -74,6 +76,7 @@
       <span class="hint">→</span>
       <select id="currSel"></select>
     </div>
+    <div id="warn" class="warnbox" hidden data-i18n="panelIncompleteWarn"></div>
     <div class="stats" id="stats"></div>
     <div class="tabs" id="tabs" style="margin-top:20px"></div>
     <div class="row" style="margin-top:12px">

@@ -208,5 +208,39 @@
         "content": "$3"
       }
     }
+  },
+  "popupRetry": {
+    "message": "$KIND$: $N$/$E$ geldi, eksik; küçük sayfalarla tekrar deneniyor…",
+    "placeholders": {
+      "KIND": {
+        "content": "$1"
+      },
+      "N": {
+        "content": "$2"
+      },
+      "E": {
+        "content": "$3"
+      }
+    }
+  },
+  "popupDoneIncomplete": {
+    "message": "Eksik: $F$ takipçi, $G$ takip. Instagram listeyi kırptı; 20-30 dk sonra yeniden alın.",
+    "placeholders": {
+      "F": {
+        "content": "$1"
+      },
+      "G": {
+        "content": "$2"
+      }
+    }
+  },
+  "panelIncomplete": {
+    "message": "eksik"
+  },
+  "panelIncompleteHint": {
+    "message": "Instagram listeyi eksik verdi; bu snapshot ile hesaplanan farklar yanıltıcı olabilir."
+  },
+  "panelIncompleteWarn": {
+    "message": "⚠ Seçili snapshot'lardan biri Instagram'dan eksik çekilmiş (çekilen sayı profildeki sayıdan küçük). \"Onu bırakan\" ve \"Takipten çıkardı\" listeleri gerçek olmayan kayıtlar içerebilir; snapshot'ı yeniden almayı deneyin."
   }
 }

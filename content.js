@@ -40,45 +40,75 @@
     return null;
   };
 
+  // TR: Profilde yazan resmî sayılar (ör. 142 takipçi / 143 takip). Çekilen liste bundan kısaysa eksiktir.
+  // EN: The official counts shown on the profile. If the fetched list is shorter, it is incomplete.
+  const countsFromHtml = (html) => {
+    const pick = (...res) => { for (const re of res) { const m = html.match(re); if (m) return +m[1]; } return null; };
+    return {
+      followers: pick(/"edge_followed_by":\{"count":(\d+)/, /"follower_count":(\d+)/),
+      following: pick(/"edge_follow":\{"count":(\d+)/, /"following_count":(\d+)/),
+    };
+  };
+
+  // TR: { id, expected: { followers, following } } döner. / EN: Returns { id, expected: { followers, following } }.
   async function resolveId(name, report) {
-    let id = idFromHtml(document.documentElement.innerHTML, name);
-    if (id) return id;
+    const pageHtml = document.documentElement.innerHTML;
+    let id = idFromHtml(pageHtml, name);
+    if (id) return { id, expected: countsFromHtml(pageHtml) };
     // TR: SPA geçişinde sayfa içi JSON eski kalabilir; profil HTML'ini taze çek.
     // EN: After an SPA navigation the embedded JSON can be stale; fetch the profile HTML fresh.
     try {
       const res = await fetch(`https://www.instagram.com/${encodeURIComponent(name)}/`, { credentials: 'include' });
-      if (res.ok) { id = idFromHtml(await res.text(), name); if (id) return id; }
+      if (res.ok) { const html = await res.text(); id = idFromHtml(html, name); if (id) return { id, expected: countsFromHtml(html) }; }
     } catch {}
     for (let i = 0; i < 3; i++) {
       const res = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(name)}`, { headers: HEADERS, credentials: 'include' });
       if (res.status === 429) { report({ stage: 'ratelimit' }); await sleep(90_000); continue; }
       if (!res.ok) throw new Error(t('errHttp', res.status));
-      return String((await res.json()).data.user.id);
+      const u = (await res.json()).data.user;
+      return { id: String(u.id), expected: { followers: u.edge_followed_by?.count ?? null, following: u.edge_follow?.count ?? null } };
     }
     throw new Error(t('errNoId'));
   }
 
   // --- List fetching --------------------------------------------------------
-  async function fetchAll(targetId, kind, report) {
-    const out = [];
+  // TR: Instagram bu endpoint'te büyük count değerlerinde listeyi sessizce kırpıp next_max_id vermiyor
+  //     (142 takipçili bir hesapta 114-125 kayıt dönüyordu). Web istemcisi 12'lik sayfalar kullanır; biz 50.
+  // EN: With large count values Instagram silently truncates this list and omits next_max_id
+  //     (a 142-follower account returned 114-125). The web client uses pages of 12; we use 50.
+  async function fetchPages(targetId, kind, pageSize, seen, report) {
     let maxId = null;
     while (true) {
-      const url = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=200${maxId ? `&max_id=${encodeURIComponent(maxId)}` : ''}`;
+      const url = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${pageSize}&search_surface=follow_list_page${maxId ? `&max_id=${encodeURIComponent(maxId)}` : ''}`;
       const res = await fetch(url, { headers: HEADERS, credentials: 'include' });
       if (res.status === 429) { report({ stage: 'ratelimit' }); await sleep(60_000); continue; }
       // TR: Gizli hesap + takip yok → 400/403. / EN: Private account you don't follow → 400/403.
       if (res.status === 400 || res.status === 403) throw new Error(t('errPrivate'));
       if (!res.ok) throw new Error(t('errHttp', res.status));
       const json = await res.json();
-      for (const u of json.users ?? []) out.push({ id: String(u.pk), username: u.username, full_name: u.full_name ?? '' });
-      report({ stage: 'progress', kind, count: out.length });
-      if (!json.next_max_id) break;
+      const users = json.users ?? [];
+      // TR: id ile tekilleştir; sayfalar çakışabilir. / EN: Dedupe by id; pages can overlap.
+      for (const u of users) seen.set(String(u.pk), { id: String(u.pk), username: u.username, full_name: u.full_name ?? '' });
+      report({ stage: 'progress', kind, count: seen.size });
+      if (!json.next_max_id || users.length === 0) break;
       maxId = json.next_max_id;
       // TR: 2–4 sn rastgele bekleme: hız sınırına takılmamak ve kullanıcının hesabını korumak için.
       // EN: 2–4 s random delay: avoids rate limits and protects the user's account.
       await sleep(2000 + Math.random() * 2000);
     }
-    return out;
+  }
+
+  async function fetchAll(targetId, kind, expected, report) {
+    const seen = new Map();
+    await fetchPages(targetId, kind, 50, seen, report);
+    if (expected != null && seen.size < expected) {
+      // TR: Eksik geldi; küçük sayfalarla bir tur daha atıp birleştir.
+      // EN: Came back short; do one more pass with smaller pages and merge.
+      report({ stage: 'retry', kind, count: seen.size, expected });
+      await sleep(3000);
+      await fetchPages(targetId, kind, 25, seen, report);
+    }
+    return [...seen.values()];
   }
 
   async function takeSnapshot(report) {
@@ -87,14 +117,24 @@
     const username = currentUsername();
     // TR: Profil sayfasında değilsek (ana sayfa) kendi hesabı alınır.
     // EN: If not on a profile page (home feed), snapshot the user's own account.
-    const target = username
-      ? { id: await resolveId(username, report), username, full_name: '' }
-      : { id: ownId, username: t('panelOwnAccount'), full_name: '' };
+    let target, expected = { followers: null, following: null };
+    if (username) {
+      const r = await resolveId(username, report);
+      target = { id: r.id, username, full_name: '' };
+      expected = r.expected;
+    } else {
+      target = { id: ownId, username: t('panelOwnAccount'), full_name: '' };
+    }
 
-    const followers = await fetchAll(target.id, 'followers', report);
-    const following = await fetchAll(target.id, 'following', report);
+    const followers = await fetchAll(target.id, 'followers', expected.followers, report);
+    const following = await fetchAll(target.id, 'following', expected.following, report);
 
-    const snapshot = { kind: 'radar-snapshot', version: 2, takenAt: new Date().toISOString(), target, followers, following };
+    // TR: Profil sayısı kapalı/askıya alınmış hesapları da içerir; 1-2 fark normal, fazlası eksik çekimdir.
+    // EN: The profile count includes deactivated/suspended accounts; 1-2 off is normal, more means truncation.
+    const short = (want, list) => want != null && want - list.length > 2;
+    const incomplete = short(expected.followers, followers) || short(expected.following, following);
+
+    const snapshot = { kind: 'radar-snapshot', version: 2, takenAt: new Date().toISOString(), target, expected, incomplete, followers, following };
     const { snapshots = [] } = await chrome.storage.local.get('snapshots');
     snapshots.push(snapshot);
     snapshots.sort((a, b) => a.takenAt.localeCompare(b.takenAt));
@@ -112,7 +152,7 @@
       // EN: Progress streams to the popup via runtime messages; fetching continues if the popup closes.
       const report = (p) => chrome.runtime.sendMessage({ channel: 'radar-progress', ...p }).catch(() => {});
       takeSnapshot(report)
-        .then((s) => report({ stage: 'done', followers: s.followers.length, following: s.following.length }))
+        .then((s) => report({ stage: 'done', followers: s.followers.length, following: s.following.length, expected: s.expected, incomplete: s.incomplete }))
         .catch((e) => report({ stage: 'error', message: e.message }))
         .finally(() => { running = false; });
       sendResponse({ ok: true });

@@ -53,7 +53,7 @@
   function render({ resetSelection = false } = {}) {
     $('#snaps').innerHTML = snaps.map((s, i) => `
       <div class="snap"><span><b>@${esc(s.target.username)}</b> · ${fmt(s.takenAt)}</span>
-      <span><b>${s.followers.length}</b> ${t('panelFollowersUnit')} · <b>${s.following.length}</b> ${t('panelFollowingUnit')} · <button data-del="${i}">${t('panelDelete')}</button></span></div>`).join('');
+      <span><b>${s.followers.length}</b>${s.expected?.followers != null ? `/${s.expected.followers}` : ''} ${t('panelFollowersUnit')} · <b>${s.following.length}</b>${s.expected?.following != null ? `/${s.expected.following}` : ''} ${t('panelFollowingUnit')}${s.incomplete ? ` · <b class="warn" title="${esc(t('panelIncompleteHint'))}">⚠ ${esc(t('panelIncomplete'))}</b>` : ''} · <button data-del="${i}">${t('panelDelete')}</button></span></div>`).join('');
 
     $('#content').hidden = snaps.length === 0;
     $('#emptyState').hidden = snaps.length > 0;
@@ -78,6 +78,10 @@
     const curr = mine[+currSel.value], prev = +prevSel.value >= 0 ? mine[+prevSel.value] : null;
     const d = diff(prev, curr);
     const delta = (a, b) => prev ? ` (${a - b >= 0 ? '+' : ''}${a - b})` : '';
+
+    // TR: Eksik çekilmiş snapshot varsa "bıraktı / takipten çıkardı" listeleri sahte kayıt içerebilir.
+    // EN: If a snapshot is incomplete, the "lost / unfollowed" lists may contain false entries.
+    $('#warn').hidden = ![curr, prev].some((x) => x?.incomplete);
 
     $('#stats').innerHTML = `
       <div class="stat"><div class="n">${curr.following.length}</div><div class="l">${t('statFollowing')}${delta(curr.following.length, prev?.following.length)}</div></div>

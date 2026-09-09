@@ -208,5 +208,39 @@
         "content": "$3"
       }
     }
+  },
+  "popupRetry": {
+    "message": "$KIND$: got $N$/$E$, incomplete; retrying with smaller pages…",
+    "placeholders": {
+      "KIND": {
+        "content": "$1"
+      },
+      "N": {
+        "content": "$2"
+      },
+      "E": {
+        "content": "$3"
+      }
+    }
+  },
+  "popupDoneIncomplete": {
+    "message": "Incomplete: $F$ followers, $G$ following. Instagram truncated the list; retry in 20-30 min.",
+    "placeholders": {
+      "F": {
+        "content": "$1"
+      },
+      "G": {
+        "content": "$2"
+      }
+    }
+  },
+  "panelIncomplete": {
+    "message": "incomplete"
+  },
+  "panelIncompleteHint": {
+    "message": "Instagram returned a truncated list; diffs computed from this snapshot may be misleading."
+  },
+  "panelIncompleteWarn": {
+    "message": "⚠ One of the selected snapshots was fetched incompletely from Instagram (fewer entries than the profile count). The \"Lost followers\" and \"Unfollowed\" lists may contain false entries; try taking the snapshot again."
   }
 }

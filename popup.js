@@ -56,11 +56,14 @@ chrome.runtime.onMessage.addListener((m) => {
   switch (m.stage) {
     case 'progress': msg(t('popupProgress', t(m.kind === 'followers' ? 'kindFollowers' : 'kindFollowing'), m.count)); break;
     case 'ratelimit': msg(t('popupRateLimit'), 'warn'); break;
-    case 'done':
-      msg(t('popupDone', m.followers, m.following), 'ok');
+    case 'retry': msg(t('popupRetry', t(m.kind === 'followers' ? 'kindFollowers' : 'kindFollowing'), m.count, m.expected), 'warn'); break;
+    case 'done': {
+      const exp = (n, e) => e != null ? `${n}/${e}` : String(n);
+      msg(t(m.incomplete ? 'popupDoneIncomplete' : 'popupDone', exp(m.followers, m.expected?.followers), exp(m.following, m.expected?.following)), m.incomplete ? 'warn' : 'ok');
       $('#last').textContent = fmt(new Date().toISOString());
       setButton('popupForce', 'warn'); $('#take').disabled = false; forceMode = true;
       break;
+    }
     case 'error':
       msg(t('popupError', m.message), 'err');
       setButton(forceMode ? 'popupForce' : 'popupTake', forceMode ? 'warn' : 'primary'); $('#take').disabled = false;
