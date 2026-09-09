@@ -40,8 +40,34 @@
     return null;
   };
 
-  // TR: Profilde yazan resmî sayılar (ör. 142 takipçi / 143 takip). Çekilen liste bundan kısaysa eksiktir.
-  // EN: The official counts shown on the profile. If the fetched list is shorter, it is incomplete.
+  // TR: Profilde yazan resmî sayılar (ör. "142 takipçi" / "143 takip"). Sayfa JSON'unda bulunmuyor;
+  //     başlıktaki metinden okuruz (takipçi sayısında title="142" tam değeri verir). Çekilen liste bundan kısaysa eksiktir.
+  // EN: The official counts shown on the profile ("142 followers" / "143 following"). Not present in the page
+  //     JSON; read from the header text (the follower span carries title="142" with the exact value).
+  const parseCount = (txt) => {
+    const m = String(txt ?? '').trim().match(/^([\d.,]+)\s*[^\d]*$/);
+    if (!m) return null; // "12,3B" / "1.2M" gibi kısaltmalar → bilinmiyor / abbreviated → unknown
+    const n = parseInt(m[1].replace(/[.,]/g, ''), 10);
+    return Number.isFinite(n) ? n : null;
+  };
+  const countsFromDom = () => {
+    const out = { followers: null, following: null };
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let node;
+    while ((node = walker.nextNode())) {
+      const t = node.textContent.trim();
+      const isF = /^(?:[\d.,]+\s*)?(takipçi|followers)$/i.test(t);
+      const isG = /^(?:[\d.,]+\s*)?(takip|following)$/i.test(t);
+      if (!isF && !isG) continue;
+      const el = node.parentElement, box = el?.parentElement ?? el;
+      const titled = box?.querySelector('[title]')?.getAttribute('title');
+      const n = parseCount(titled) ?? parseCount((box?.textContent ?? '').replace(/(takipçi|takip|followers|following)/i, ''));
+      if (n == null) continue;
+      if (isF && out.followers == null) out.followers = n;
+      if (isG && out.following == null) out.following = n;
+    }
+    return out;
+  };
   const countsFromHtml = (html) => {
     const pick = (...res) => { for (const re of res) { const m = html.match(re); if (m) return +m[1]; } return null; };
     return {
@@ -49,37 +75,43 @@
       following: pick(/"edge_follow":\{"count":(\d+)/, /"following_count":(\d+)/),
     };
   };
+  const mergeCounts = (a, b) => ({ followers: a.followers ?? b.followers, following: a.following ?? b.following });
 
   // TR: { id, expected: { followers, following } } döner. / EN: Returns { id, expected: { followers, following } }.
   async function resolveId(name, report) {
     const pageHtml = document.documentElement.innerHTML;
     let id = idFromHtml(pageHtml, name);
-    if (id) return { id, expected: countsFromHtml(pageHtml) };
+    if (id) return { id, expected: mergeCounts(countsFromDom(), countsFromHtml(pageHtml)) };
     // TR: SPA geçişinde sayfa içi JSON eski kalabilir; profil HTML'ini taze çek.
     // EN: After an SPA navigation the embedded JSON can be stale; fetch the profile HTML fresh.
     try {
       const res = await fetch(`https://www.instagram.com/${encodeURIComponent(name)}/`, { credentials: 'include' });
-      if (res.ok) { const html = await res.text(); id = idFromHtml(html, name); if (id) return { id, expected: countsFromHtml(html) }; }
+      if (res.ok) { const html = await res.text(); id = idFromHtml(html, name); if (id) return { id, expected: mergeCounts(countsFromDom(), countsFromHtml(html)) }; }
     } catch {}
     for (let i = 0; i < 3; i++) {
       const res = await fetch(`https://www.instagram.com/api/v1/users/web_profile_info/?username=${encodeURIComponent(name)}`, { headers: HEADERS, credentials: 'include' });
       if (res.status === 429) { report({ stage: 'ratelimit' }); await sleep(90_000); continue; }
       if (!res.ok) throw new Error(t('errHttp', res.status));
       const u = (await res.json()).data.user;
-      return { id: String(u.id), expected: { followers: u.edge_followed_by?.count ?? null, following: u.edge_follow?.count ?? null } };
+      return { id: String(u.id), expected: mergeCounts(countsFromDom(), { followers: u.edge_followed_by?.count ?? null, following: u.edge_follow?.count ?? null }) };
     }
     throw new Error(t('errNoId'));
   }
 
   // --- List fetching --------------------------------------------------------
-  // TR: Instagram bu endpoint'te büyük count değerlerinde listeyi sessizce kırpıp next_max_id vermiyor
-  //     (142 takipçili bir hesapta 114-125 kayıt dönüyordu). Web istemcisi 12'lik sayfalar kullanır; biz 50.
-  // EN: With large count values Instagram silently truncates this list and omits next_max_id
-  //     (a 142-follower account returned 114-125). The web client uses pages of 12; we use 50.
-  async function fetchPages(targetId, kind, pageSize, seen, report) {
-    let maxId = null;
-    while (true) {
-      const url = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=${pageSize}&search_surface=follow_list_page${maxId ? `&max_id=${encodeURIComponent(maxId)}` : ''}`;
+  // TR: Instagram bu listeyi her istekte yeniden sıralıyor (follow_ranking_token her yanıtta değişir) ve
+  //     takipçi listesini sunucu tarafında 25'lik sayfaya zorluyor. Offset'e göre düz sayfalama yapınca
+  //     aynı kişiler tekrar geliyor, bazıları hiç gelmiyor (142 takipçili hesapta 114-128). Çözüm:
+  //     pencereleri yarı yarıya örtüştür (25'lik sayfa, 12 adım) ve id ile tekilleştir; tek turda ~140/142.
+  //     Yine kısa kalırsa tur tekrarlanıp birleştirilir. Takip listesi count=200 ile tek sayfada tam geliyor.
+  // EN: Instagram re-ranks this list on every request (follow_ranking_token changes each response) and caps
+  //     the followers list at 25 per page server-side. Plain offset pagination therefore repeats some users
+  //     and skips others (114-128 of 142). Fix: overlap windows by half (page 25, step 12) and dedupe by id;
+  //     one pass yields ~140/142. If still short, extra passes are merged. Following returns fully at count=200.
+  async function fetchPass(targetId, kind, seen, report) {
+    let offset = 0;
+    for (let guard = 0; guard < 400; guard++) {
+      const url = `https://www.instagram.com/api/v1/friendships/${targetId}/${kind}/?count=200&search_surface=follow_list_page${offset ? `&max_id=${offset}` : ''}`;
       const res = await fetch(url, { headers: HEADERS, credentials: 'include' });
       if (res.status === 429) { report({ stage: 'ratelimit' }); await sleep(60_000); continue; }
       // TR: Gizli hesap + takip yok → 400/403. / EN: Private account you don't follow → 400/403.
@@ -87,26 +119,26 @@
       if (!res.ok) throw new Error(t('errHttp', res.status));
       const json = await res.json();
       const users = json.users ?? [];
-      // TR: id ile tekilleştir; sayfalar çakışabilir. / EN: Dedupe by id; pages can overlap.
       for (const u of users) seen.set(String(u.pk), { id: String(u.pk), username: u.username, full_name: u.full_name ?? '' });
       report({ stage: 'progress', kind, count: seen.size });
       if (!json.next_max_id || users.length === 0) break;
-      maxId = json.next_max_id;
-      // TR: 2–4 sn rastgele bekleme: hız sınırına takılmamak ve kullanıcının hesabını korumak için.
-      // EN: 2–4 s random delay: avoids rate limits and protects the user's account.
-      await sleep(2000 + Math.random() * 2000);
+      // TR: Sunucunun verdiği sayfa boyutunun yarısı kadar ilerle (25 → 12). / EN: Advance by half the served page (25 → 12).
+      offset += Math.max(1, Math.floor(users.length / 2));
+      // TR: 1–2 sn rastgele bekleme: hız sınırına takılmamak için. / EN: 1–2 s random delay to avoid rate limits.
+      await sleep(1000 + Math.random() * 1000);
     }
   }
 
   async function fetchAll(targetId, kind, expected, report) {
     const seen = new Map();
-    await fetchPages(targetId, kind, 50, seen, report);
-    if (expected != null && seen.size < expected) {
-      // TR: Eksik geldi; küçük sayfalarla bir tur daha atıp birleştir.
-      // EN: Came back short; do one more pass with smaller pages and merge.
-      report({ stage: 'retry', kind, count: seen.size, expected });
-      await sleep(3000);
-      await fetchPages(targetId, kind, 25, seen, report);
+    const enough = () => expected != null && seen.size >= expected - 1;
+    for (let pass = 1; pass <= 3; pass++) {
+      if (pass > 1) { report({ stage: 'retry', kind, count: seen.size, expected }); await sleep(2500); }
+      const before = seen.size;
+      await fetchPass(targetId, kind, seen, report);
+      // TR: Beklenen bilinmiyorsa tek tur yeter; bilinip ulaşıldıysa ya da tur hiç yeni kayıt getirmediyse dur.
+      // EN: Unknown expected → one pass; stop when reached, or when a pass adds nothing new.
+      if (expected == null || enough() || seen.size === before) break;
     }
     return [...seen.values()];
   }
