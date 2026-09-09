@@ -1,0 +1,212 @@
+{
+  "appName": {
+    "message": "Radar — Takip Analizi"
+  },
+  "appDesc": {
+    "message": "Bir profilin takip ettiği ve takipçi listesini kaydedip zaman içindeki değişimi gösterir. Veriler yalnızca cihazınızda kalır."
+  },
+  "popupNotOnSite": {
+    "message": "Bu eklenti yalnızca instagram.com profil sayfalarında çalışır."
+  },
+  "popupReload": {
+    "message": "Sayfayı yenileyip tekrar deneyin."
+  },
+  "popupNoProfile": {
+    "message": "Bir profil sayfası açın (instagram.com/kullaniciadi)."
+  },
+  "popupTarget": {
+    "message": "Hedef"
+  },
+  "popupTake": {
+    "message": "Snapshot al"
+  },
+  "popupTaking": {
+    "message": "Alınıyor…"
+  },
+  "popupOpenPanel": {
+    "message": "Paneli aç"
+  },
+  "popupLast": {
+    "message": "Son snapshot"
+  },
+  "popupNever": {
+    "message": "henüz yok"
+  },
+  "popupTooSoon": {
+    "message": "Bu hesap için son $HOURS$ saat içinde snapshot alındı. Sık çekmek hesabınızı kısıtlatabilir.",
+    "placeholders": {
+      "HOURS": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupForce": {
+    "message": "Yine de al"
+  },
+  "popupDone": {
+    "message": "Tamam: $F$ takipçi, $G$ takip. Panelde görebilirsiniz.",
+    "placeholders": {
+      "F": {
+        "content": "$1"
+      },
+      "G": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupProgress": {
+    "message": "$KIND$: $N$ kişi…",
+    "placeholders": {
+      "KIND": {
+        "content": "$1"
+      },
+      "N": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupRateLimit": {
+    "message": "Hız sınırı, 60 sn bekleniyor…"
+  },
+  "popupError": {
+    "message": "Hata: $MSG$",
+    "placeholders": {
+      "MSG": {
+        "content": "$1"
+      }
+    }
+  },
+  "kindFollowers": {
+    "message": "Takipçiler"
+  },
+  "kindFollowing": {
+    "message": "Takip edilenler"
+  },
+  "errNotLoggedIn": {
+    "message": "Giriş yapmış görünmüyorsunuz."
+  },
+  "errNoId": {
+    "message": "Profil kimliği çözülemedi; sayfayı adres çubuğundan yeniden açıp deneyin."
+  },
+  "errPrivate": {
+    "message": "Hesap gizli ve siz takip etmiyorsunuz; liste görüntülenemiyor."
+  },
+  "errHttp": {
+    "message": "İstek $CODE$ döndü.",
+    "placeholders": {
+      "CODE": {
+        "content": "$1"
+      }
+    }
+  },
+  "panelTitle": {
+    "message": "Radar"
+  },
+  "panelSubtitle": {
+    "message": "takip hareketleri"
+  },
+  "panelBackup": {
+    "message": "Yedek al"
+  },
+  "panelRestore": {
+    "message": "Yedek yükle"
+  },
+  "panelWipe": {
+    "message": "Tümünü sil"
+  },
+  "panelWipeConfirm": {
+    "message": "Tüm snapshot'lar silinsin mi?"
+  },
+  "panelAccount": {
+    "message": "Hesap"
+  },
+  "panelCompare": {
+    "message": "Karşılaştır"
+  },
+  "panelOnlyLatest": {
+    "message": "— (yalnızca son durum)"
+  },
+  "panelSearch": {
+    "message": "Kullanıcı adı ara…"
+  },
+  "panelSnapshots": {
+    "message": "Kayıtlı snapshot'lar"
+  },
+  "panelNoSnapshots": {
+    "message": "Henüz snapshot yok. Bir profil sayfasında eklenti simgesine tıklayıp \"Snapshot al\" deyin."
+  },
+  "panelDelete": {
+    "message": "sil"
+  },
+  "panelNeedSecond": {
+    "message": "Fark görmek için bu hesap için ikinci bir snapshot ekleyin."
+  },
+  "panelEmpty": {
+    "message": "Bu listede kimse yok."
+  },
+  "panelFollowersUnit": {
+    "message": "takipçi"
+  },
+  "panelFollowingUnit": {
+    "message": "takip"
+  },
+  "panelOwnAccount": {
+    "message": "(kendi hesabım)"
+  },
+  "statFollowing": {
+    "message": "Takip ettiği"
+  },
+  "statFollowers": {
+    "message": "Takipçisi"
+  },
+  "statStarted": {
+    "message": "Yeni takip etti"
+  },
+  "statStopped": {
+    "message": "Takipten çıkardı"
+  },
+  "statLost": {
+    "message": "Onu bırakan"
+  },
+  "tabStarted": {
+    "message": "Yeni takip etti"
+  },
+  "tabStopped": {
+    "message": "Takipten çıkardı"
+  },
+  "tabNewFollowers": {
+    "message": "Yeni takipçisi"
+  },
+  "tabLost": {
+    "message": "Onu bırakan"
+  },
+  "tabAllFollowing": {
+    "message": "Tüm takip ettikleri"
+  },
+  "tabAllFollowers": {
+    "message": "Tüm takipçileri"
+  },
+  "footerPrivacy": {
+    "message": "Tüm veriler yalnızca bu tarayıcıda saklanır; hiçbir sunucuya gönderilmez."
+  },
+  "pagerPrev": {
+    "message": "Önceki"
+  },
+  "pagerNext": {
+    "message": "Sonraki"
+  },
+  "pagerRange": {
+    "message": "$FROM$–$TO$ / $TOTAL$",
+    "placeholders": {
+      "FROM": {
+        "content": "$1"
+      },
+      "TO": {
+        "content": "$2"
+      },
+      "TOTAL": {
+        "content": "$3"
+      }
+    }
+  }
+}

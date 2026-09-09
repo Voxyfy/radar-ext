@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="512" height="512">
+  <!-- Radar — app icon. Teal→navy tile, radar rings, vivid gradient sweep, glowing blips. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f4c5c"/>
+      <stop offset="0.55" stop-color="#0d1f33"/>
+      <stop offset="1" stop-color="#090b14"/>
+    </linearGradient>
+    <linearGradient id="sweep" x1="64" y1="18" x2="112" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5cff9d" stop-opacity="0.95"/>
+      <stop offset="0.6" stop-color="#3ddc84" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#3ddc84" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="dishGlow" cx="64" cy="64" r="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#3ddc84" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#3ddc84" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="glow" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="3" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="dish"><circle cx="64" cy="64" r="46"/></clipPath>
+  </defs>
+
+  <rect width="128" height="128" rx="30" fill="url(#tile)"/>
+  <circle cx="64" cy="64" r="48" fill="url(#dishGlow)"/>
+
+  <!-- crosshair -->
+  <g stroke="#3a5566" stroke-width="2" stroke-opacity="0.9">
+    <line x1="64" y1="18" x2="64" y2="110"/>
+    <line x1="18" y1="64" x2="110" y2="64"/>
+  </g>
+  <!-- rings -->
+  <circle cx="64" cy="64" r="46" fill="none" stroke="#6fb3b8" stroke-width="4"/>
+  <circle cx="64" cy="64" r="31" fill="none" stroke="#4d8590" stroke-width="3"/>
+  <circle cx="64" cy="64" r="16" fill="none" stroke="#4d8590" stroke-width="3"/>
+
+  <!-- sweep wedge -->
+  <path d="M64 64 L64 18 A46 46 0 0 1 110 64 Z" fill="url(#sweep)" clip-path="url(#dish)"/>
+  <line x1="64" y1="64" x2="64" y2="18" stroke="#8dffb8" stroke-width="4" stroke-linecap="round" filter="url(#glow)"/>
+
+  <!-- primary blip -->
+  <circle cx="86" cy="42" r="7.5" fill="#5cff9d" filter="url(#glow)"/>
+  <circle cx="86" cy="42" r="13" fill="none" stroke="#5cff9d" stroke-width="2" stroke-opacity="0.5"/>
+  <!-- secondary blip (fading echo) -->
+  <circle cx="42" cy="84" r="5" fill="#ffb547" fill-opacity="0.9" filter="url(#glow)"/>
+
+  <!-- pivot -->
+  <circle cx="64" cy="64" r="5.5" fill="#ffffff"/>
+</svg>

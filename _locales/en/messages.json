@@ -1,0 +1,212 @@
+{
+  "appName": {
+    "message": "Radar — Follow Analytics"
+  },
+  "appDesc": {
+    "message": "Saves a profile's following and follower lists and shows how they change over time. Data never leaves your device."
+  },
+  "popupNotOnSite": {
+    "message": "This extension only works on instagram.com profile pages."
+  },
+  "popupReload": {
+    "message": "Reload the page and try again."
+  },
+  "popupNoProfile": {
+    "message": "Open a profile page (instagram.com/username)."
+  },
+  "popupTarget": {
+    "message": "Target"
+  },
+  "popupTake": {
+    "message": "Take snapshot"
+  },
+  "popupTaking": {
+    "message": "Taking…"
+  },
+  "popupOpenPanel": {
+    "message": "Open panel"
+  },
+  "popupLast": {
+    "message": "Last snapshot"
+  },
+  "popupNever": {
+    "message": "none yet"
+  },
+  "popupTooSoon": {
+    "message": "A snapshot for this account was taken within the last $HOURS$ hours. Frequent fetching may get your account rate-limited.",
+    "placeholders": {
+      "HOURS": {
+        "content": "$1"
+      }
+    }
+  },
+  "popupForce": {
+    "message": "Take anyway"
+  },
+  "popupDone": {
+    "message": "Done: $F$ followers, $G$ following. See the panel.",
+    "placeholders": {
+      "F": {
+        "content": "$1"
+      },
+      "G": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupProgress": {
+    "message": "$KIND$: $N$ people…",
+    "placeholders": {
+      "KIND": {
+        "content": "$1"
+      },
+      "N": {
+        "content": "$2"
+      }
+    }
+  },
+  "popupRateLimit": {
+    "message": "Rate limited, waiting 60 s…"
+  },
+  "popupError": {
+    "message": "Error: $MSG$",
+    "placeholders": {
+      "MSG": {
+        "content": "$1"
+      }
+    }
+  },
+  "kindFollowers": {
+    "message": "Followers"
+  },
+  "kindFollowing": {
+    "message": "Following"
+  },
+  "errNotLoggedIn": {
+    "message": "You don't appear to be logged in."
+  },
+  "errNoId": {
+    "message": "Could not resolve the profile id; open the page from the address bar and retry."
+  },
+  "errPrivate": {
+    "message": "The account is private and you don't follow it; the list isn't viewable."
+  },
+  "errHttp": {
+    "message": "Request returned $CODE$.",
+    "placeholders": {
+      "CODE": {
+        "content": "$1"
+      }
+    }
+  },
+  "panelTitle": {
+    "message": "Radar"
+  },
+  "panelSubtitle": {
+    "message": "follow activity"
+  },
+  "panelBackup": {
+    "message": "Back up"
+  },
+  "panelRestore": {
+    "message": "Restore"
+  },
+  "panelWipe": {
+    "message": "Delete all"
+  },
+  "panelWipeConfirm": {
+    "message": "Delete all snapshots?"
+  },
+  "panelAccount": {
+    "message": "Account"
+  },
+  "panelCompare": {
+    "message": "Compare"
+  },
+  "panelOnlyLatest": {
+    "message": "— (latest only)"
+  },
+  "panelSearch": {
+    "message": "Search username…"
+  },
+  "panelSnapshots": {
+    "message": "Saved snapshots"
+  },
+  "panelNoSnapshots": {
+    "message": "No snapshots yet. Open a profile page, click the extension icon and choose \"Take snapshot\"."
+  },
+  "panelDelete": {
+    "message": "delete"
+  },
+  "panelNeedSecond": {
+    "message": "Add a second snapshot for this account to see changes."
+  },
+  "panelEmpty": {
+    "message": "Nobody in this list."
+  },
+  "panelFollowersUnit": {
+    "message": "followers"
+  },
+  "panelFollowingUnit": {
+    "message": "following"
+  },
+  "panelOwnAccount": {
+    "message": "(my account)"
+  },
+  "statFollowing": {
+    "message": "Following"
+  },
+  "statFollowers": {
+    "message": "Followers"
+  },
+  "statStarted": {
+    "message": "Started following"
+  },
+  "statStopped": {
+    "message": "Unfollowed"
+  },
+  "statLost": {
+    "message": "Lost followers"
+  },
+  "tabStarted": {
+    "message": "Started following"
+  },
+  "tabStopped": {
+    "message": "Unfollowed"
+  },
+  "tabNewFollowers": {
+    "message": "New followers"
+  },
+  "tabLost": {
+    "message": "Lost followers"
+  },
+  "tabAllFollowing": {
+    "message": "All following"
+  },
+  "tabAllFollowers": {
+    "message": "All followers"
+  },
+  "footerPrivacy": {
+    "message": "All data is stored only in this browser; nothing is sent to any server."
+  },
+  "pagerPrev": {
+    "message": "Previous"
+  },
+  "pagerNext": {
+    "message": "Next"
+  },
+  "pagerRange": {
+    "message": "$FROM$–$TO$ of $TOTAL$",
+    "placeholders": {
+      "FROM": {
+        "content": "$1"
+      },
+      "TO": {
+        "content": "$2"
+      },
+      "TOTAL": {
+        "content": "$3"
+      }
+    }
+  }
+}

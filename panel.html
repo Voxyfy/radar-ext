@@ -1,0 +1,101 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Radar</title>
+<link rel="icon" href="icons/48.png">
+<style>
+  /* TR: Tek sayfa, sıfır bağımlılık. Veri chrome.storage.local'da. / EN: Single page, zero deps. Data lives in chrome.storage.local. */
+  :root {
+    --bg: #0b0c10; --panel: #13151b; --line: #232630; --text: #e8e9ee; --muted: #8a8f9c;
+    --red: #ff5d6c; --green: #3ddc84; --amber: #ffb547; --blue: #6ea8ff;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, "SF Pro Text", Inter, system-ui, sans-serif; }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 28px; border-bottom: 1px solid var(--line); }
+  h1 { margin: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+  h1 img { width: 22px; height: 22px; border-radius: 6px; }
+  h1 small { color: var(--muted); font-weight: 400; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 28px 80px; display: grid; gap: 20px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .stat .n { font-size: 26px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .stat .l { color: var(--muted); font-size: 12px; }
+  .stat.red .n { color: var(--red); } .stat.green .n { color: var(--green); } .stat.amber .n { color: var(--amber); }
+  .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  select, input[type=search], button { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; }
+  input[type=search] { flex: 1; min-width: 200px; max-width: 420px; }
+  button { cursor: pointer; } button:hover { border-color: var(--muted); }
+  button.danger { color: var(--red); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); width: 100%; }
+  .tab { padding: 10px 16px; white-space: nowrap; font-size: 14px; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--text); border-color: var(--text); }
+  .tab .c { margin-left: 7px; font-size: 12px; color: var(--muted); background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+  .tab.active .c { color: var(--text); }
+  .tab.red.active { border-color: var(--red); } .tab.green.active { border-color: var(--green); } .tab.amber.active { border-color: var(--amber); }
+  ul.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  ul.list li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  ul.list a { color: var(--text); text-decoration: none; font-weight: 500; }
+  ul.list a:hover { text-decoration: underline; }
+  ul.list .name { color: var(--muted); font-size: 13px; }
+  .empty { color: var(--muted); padding: 30px; text-align: center; justify-content: center; }
+  .hint { color: var(--muted); font-size: 13px; }
+  .snaps { display: grid; gap: 6px; }
+  .snap { display: flex; justify-content: space-between; gap: 12px; padding: 8px 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; color: var(--muted); font-size: 13px; }
+  .snap b { color: var(--text); font-variant-numeric: tabular-nums; }
+  .snap button { padding: 2px 8px; font-size: 12px; }
+  .pager { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 14px; }
+  .pager .hint { font-variant-numeric: tabular-nums; }
+  .pager button { min-width: 96px; }
+  .pager button:disabled { opacity: .4; cursor: default; }
+  details summary { cursor: pointer; color: var(--muted); }
+  #restoreFile { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1><img src="icons/48.png" alt=""><span data-i18n="panelTitle"></span><small data-i18n="panelSubtitle"></small></h1>
+  <div class="row">
+    <button id="exportBtn" data-i18n="panelBackup"></button>
+    <button id="restoreBtn" data-i18n="panelRestore"></button>
+    <input type="file" id="restoreFile" accept=".json,application/json">
+    <button id="wipeBtn" class="danger" data-i18n="panelWipe"></button>
+  </div>
+</header>
+
+<main>
+  <section id="content" hidden>
+    <div class="row" style="margin-bottom:14px">
+      <span class="hint" data-i18n="panelAccount"></span>
+      <select id="targetSel"></select>
+      <span class="hint" style="margin-left:12px" data-i18n="panelCompare"></span>
+      <select id="prevSel"></select>
+      <span class="hint">→</span>
+      <select id="currSel"></select>
+    </div>
+    <div class="stats" id="stats"></div>
+    <div class="tabs" id="tabs" style="margin-top:20px"></div>
+    <div class="row" style="margin-top:12px">
+      <input type="search" id="q">
+    </div>
+    <ul class="list" id="list" style="margin-top:12px"></ul>
+    <div class="pager" id="pager" hidden>
+      <button id="pgPrev">‹ <span data-i18n="pagerPrev"></span></button>
+      <span class="hint" id="pgInfo"></span>
+      <button id="pgNext"><span data-i18n="pagerNext"></span> ›</button>
+    </div>
+  </section>
+
+  <p class="hint" id="emptyState" hidden data-i18n="panelNoSnapshots"></p>
+
+  <details>
+    <summary data-i18n="panelSnapshots"></summary>
+    <div class="snaps" id="snaps" style="margin-top:10px"></div>
+  </details>
+
+  <p class="hint" data-i18n="footerPrivacy"></p>
+</main>
+<script src="panel.js"></script>
+</body>
+</html>
