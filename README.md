@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <img alt="Version" src="https://img.shields.io/badge/version-1.0.0-3ddc84?style=flat-square">
+  <img alt="Version" src="https://img.shields.io/badge/version-1.0.1-3ddc84?style=flat-square">
   <img alt="Manifest V3" src="https://img.shields.io/badge/manifest-v3-0f4c5c?style=flat-square">
   <img alt="License" src="https://img.shields.io/badge/license-PolyForm%20Noncommercial-orange?style=flat-square">
   <img alt="Languages" src="https://img.shields.io/badge/UI-TR%20%7C%20EN-6ea8ff?style=flat-square">
@@ -66,6 +66,8 @@ Snapshot biçimi:
 ```json
 { "kind": "radar-snapshot", "version": 2, "takenAt": "ISO-8601",
   "target": { "id": "…", "username": "…", "full_name": "" },
+  "expected": { "followers": 142, "following": 143 },
+  "incomplete": false,
   "followers": [{ "id": "…", "username": "…", "full_name": "…" }],
   "following": [ … ] }
 ```
